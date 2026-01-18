@@ -1,0 +1,21 @@
+name: Discord Push Notification
+
+on:
+  workflow_call:
+    secrets:
+      DISCORD_WEBHOOK:
+        required: true
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send all commits to Discord
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        run: |
+          COMMITS=$(jq -r '.commits[].message' "$GITHUB_EVENT_PATH" | sed 's/^/- /')
+          curl -H "Content-Type: application/json" \
+               -X POST \
+               -d "{\"content\": \"**New push** to ${GITHUB_REF#refs/heads/}\nRepository: ${GITHUB_REPOSITORY}\nPusher: ${GITHUB_ACTOR}\nCommits:\n$COMMITS\"}" \
+               $DISCORD_WEBHOOK
