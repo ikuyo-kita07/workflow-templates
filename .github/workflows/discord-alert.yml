@@ -16,6 +16,10 @@ jobs:
         run: |
           sudo apt-get install jq
           COMMITS=$(jq -r '.commits[].message' "$GITHUB_EVENT_PATH" | sed 's/^/- /')
+          if [ -z "${COMMITS}" ]; then
+            echo "Seems like the commit message is empty or whatever, skipping this call..."
+            exit 0;
+          fi
           curl -H "Content-Type: application/json" \
                -X POST \
                -d "{\"content\": \"**New push** to ${GITHUB_REF#refs/heads/}\nRepository: ${GITHUB_REPOSITORY}\nPusher: ${GITHUB_ACTOR}\nCommits:\n$COMMITS\"}" \
