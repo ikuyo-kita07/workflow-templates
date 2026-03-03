@@ -1,0 +1,33 @@
+name: Setup Android NDK
+
+on:
+  workflow_call:
+
+jobs:
+  download-ndk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download the android-ndk
+        run: |
+          curVe=$(curl -s https://dl.google.com/android/repository/repository2-3.xml | grep -o 'path="ndk;[^"]*"' | sed 's/path="ndk;//;s/"//' | sort -V | tail -n 1)
+          # if we don't get the end-result, let's just cry about it.
+          if ping "$curVe"; then
+            wget "https://dl.google.com/android/repository/android-ndk-r$(echo $curVe | cut -c 1-2)-linux.zip"
+            sudo unzip ./android-ndk-r$(echo $curVe | cut -c 1-2)-linux.zip
+          else
+            echo "- Failed to fetch latest android ndk.";
+            exit 0;
+          fi
+  test-ndk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test android-ndk functionality.
+        run: |
+          if ! sudo unzip -o android-ndk-r$(echo $curVe | cut -c 1-2)-linux.zip; then
+            echo "- Failed to unpack the android package.";
+            exit 1;
+          fi
+          if ! android-ndk-r$(echo $curVe | cut -c 1-2)/toolchains/llvm/prebuilt/linux-x86_64/bin/x86_64-linux-android30-clang ./test.c -o thisShit; then
+            echo "- Compilation failed, please try setting up the toolchain again or report if the problem persists.";
+            exit 1;
+          fi
