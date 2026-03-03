@@ -1,0 +1,20 @@
+name: Test android-ndk
+
+on:
+  workflow_dispatch:
+
+jobs:
+  android_ndk:
+    uses: ikuyo-kita07/workflow-templates/.github/workflows/android-ndk.yml@main
+  inspect:
+    needs: android_ndk
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: android-ndk
+          path: android-ndk
+      - name: Use NDK
+        run: |
+          chmod -R +x android-ndk/toolchains/llvm/prebuilt/linux-x86_64/bin/
+          android-ndk/toolchains/llvm/prebuilt/linux-x86_64/bin/x86_64-linux-android30-clang --version
